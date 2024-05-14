@@ -1,0 +1,115 @@
+### Initial Setup
+### Note that this can also be done
+### via environment variables
+### export OBSERVE_CUSTOMER=
+### export OBSERVE_API_TOKEN=
+### export OBSERVE_DOMAIN=
+### but inline settings override envars
+
+# provider "observe" {
+#   customer  = ""
+#   api_token = ""
+#   domain = ""
+# }
+
+data "observe_workspace" "default" {
+  name = "Default"
+}
+
+
+# set up an OID lookup so we get back a properly formatted string
+# this is needed for layered settings specifically
+# because certain layered settings apply at the customer level
+# meaning the "target" value needs to be formatted 
+# in a way that the API requires
+# this should match the customer value above
+data "observe_oid" "customer" {
+  id   = "124203122673"
+  type = "customer"
+}
+
+
+# Applying a customer-wide soft limit
+# Query Governor - Customer Level Throttled
+resource "observe_layered_setting_record" "base_tenant_credit_limit_throttled" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "New Global Credit Limit THROTTLED"
+    setting       = "QueryGovernor.throttledLimitCreditsPerDay"
+    value_float64 = 100.0
+    target        = data.observe_oid.customer.oid
+}
+
+# Applying hard and soft limits for all users
+# Query Governor - User Level - All Users - Throttled
+resource "observe_layered_setting_record" "all_users_credit_limit_soft" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "All Users Query Limit THROTTLED"
+    setting       = "QueryGovernor.userThrottledLimitCreditsPerDay"
+    value_float64 = 1.0
+    target        = data.observe_oid.customer.oid
+}
+
+# Query Governor - User Level - All Users - Hard
+resource "observe_layered_setting_record" "all_users_credit_limit_hard" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "All Users Query Limit HARD"
+    setting       = "QueryGovernor.userCreditsPerDay"
+    value_float64 = 5.0
+    target        = data.observe_oid.customer.oid
+}
+
+
+
+# Applying hard and soft limits to specific users
+# These override the all users settings above
+# for whatever users they are set for
+# User 1 Lookup
+data "observe_user" "kyle_champlin" {
+  email = "kyle.champlin+may2024@observeinc.com"
+}
+
+# Query Governor - User Level - User 1 - Throttled
+resource "observe_layered_setting_record" "base_admin_credit_limit" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "User 1 Query Limit THROTTLED"
+    setting       = "QueryGovernor.userThrottledLimitCreditsPerDay"
+    value_float64 = 5.0
+    target        = data.observe_user.kyle_champlin.oid
+}
+
+# Query Governor - User Level - User 1 - Hard
+resource "observe_layered_setting_record" "base_admin_credit_limit_hard" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "User 1 Query Limit HARD"
+    setting       = "QueryGovernor.userCreditsPerDay"
+    value_float64 = 10.0
+    target        = data.observe_user.kyle_champlin.oid
+}
+
+
+# User 2 Lookup
+data "observe_user" "carl_credit" {
+  email = "kyle.champlin+creditlimittest@observeinc.com"
+}
+
+
+# Query Governor - User Level - User 2 - Throttled
+resource "observe_layered_setting_record" "base_reader_credit_limit" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "New User READER Credit Limit HARD"
+    setting       = "QueryGovernor.userCreditsPerDay"
+    value_float64 = 1.0
+    target        = data.observe_user.carl_credit.oid
+}
+
+
+
+
+# Query Governor - Customer Level Hard Limit
+resource "observe_layered_setting_record" "base_tenant_credit_limit" {
+    workspace     = data.observe_workspace.default.oid
+    name          = "New Global Credit Limit cdHARD"
+    setting       = "QueryGovernor.creditsPerDay"
+    value_float64 = 10.0
+    target        = data.observe_oid.customer.oid
+}
