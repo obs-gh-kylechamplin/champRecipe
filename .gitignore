@@ -34,3 +34,6 @@ override.tf.json
 terraform.rc
 
 **/gql_recipes/*json
+**/terraform_recipes/*json
+
+*.terraform.lock.hcl

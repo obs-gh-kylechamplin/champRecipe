@@ -7,3 +7,9 @@ terraform {
   }
   required_version = ">= 1.0"
 }
+
+## boilerplate setup for getting the default workspace value
+## workspaces should be considered 1:1 with tenant/customer ID
+data "observe_workspace" "default" {
+  name = "Default"
+}

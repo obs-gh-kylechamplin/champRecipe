@@ -12,10 +12,6 @@
 ##   domain = ""
 ## }
 
-data "observe_workspace" "default" {
-  name = "Default"
-}
-
 
 
 ### Example of creating RBAC statements/permissions
@@ -24,7 +20,6 @@ data "observe_workspace" "default" {
 
 data "observe_rbac_group" "min_lister" {
     name = "MINIMAL LISTER"
-    description = "Created via Terraform Integration"
 }
 
 ## Object type permission example worksheet, view only
@@ -51,7 +46,8 @@ resource "observe_rbac_statement" "minimal_reader_dashboard" {
 
 
 ### Example of adding users that are 
-### stored in a file 
+### stored in a file. We are copying 
+### the files from the gql_recipes directory
 
 ## Pull in a list of user "objects" via a direct dump
 ## of the users GQL API - see observe_gql.sh

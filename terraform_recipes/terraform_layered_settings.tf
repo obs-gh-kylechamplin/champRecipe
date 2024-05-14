@@ -12,10 +12,6 @@
 #   domain = ""
 # }
 
-data "observe_workspace" "default" {
-  name = "Default"
-}
-
 
 # set up an OID lookup so we get back a properly formatted string
 # this is needed for layered settings specifically
@@ -108,7 +104,7 @@ resource "observe_layered_setting_record" "base_reader_credit_limit" {
 # Query Governor - Customer Level Hard Limit
 resource "observe_layered_setting_record" "base_tenant_credit_limit" {
     workspace     = data.observe_workspace.default.oid
-    name          = "New Global Credit Limit cdHARD"
+    name          = "New Global Credit Limit HARD"
     setting       = "QueryGovernor.creditsPerDay"
     value_float64 = 10.0
     target        = data.observe_oid.customer.oid
