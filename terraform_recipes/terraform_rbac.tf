@@ -87,44 +87,44 @@ resource "observe_rbac_group_member" "minimal_lister_members" {
 
 
 
-###  Exampel of creating a new group via TF
-###  derived from this example: 
-###  https://docs.observeinc.com/en/latest/content/workspaces/rbac-terra.html#create-an-engineering-group
+##  Example of creating a new group via TF
+##  derived from this example: 
+##  https://docs.observeinc.com/en/latest/content/workspaces/rbac-terra.html#create-an-engineering-group
 
 
-## define a resource of type observe_rbac_group
-## and give it the name "minimal reader"
-# resource "observe_rbac_group" "minimal_reader" {
-#  name = "MINIMAL READER"
-# }
-
-# ## create an RBAC statement for allowing
-# ## the "View" the following objects
-# resource "observe_rbac_statement" "minimal_reader_permissions" {
-#   subject { group = observe_rbac_group.minimal_reader.oid }
-#   object { 
-#     all = true 
-#     }
-#   role = "Viewer"
-# }
-
-# ## Look up that group we just created
-# data "observe_rbac_group" "min_reader" {
-#     name = "MINIMAL READER"
-# }
-# ## let's add a single user to that group
-# ## by looking up the user by their email
-# data "observe_user" "example" {
-#   email = "kyle.champlin+readeronly@observeinc.com"
-# }
+# define a resource of type observe_rbac_group
+# and give it the name "minimal reader"
+resource "observe_rbac_group" "minimal_reader" {
+ name = "MINIMAL READER"
+ description = "CREATED VIA TERRAFORM"
+}
 
 
-# ## take the user and group we looked up
-# ## and then add that user 
-# resource "observe_rbac_group_member" "add_user_to_minimal_reader" {
-#   group = data.observe_rbac_group.min_reader.oid
-#   description = "Add user to minimal reader group"
-#   member {
-#     user = data.observe_user.example.oid
-#   }
-# }
+## create an RBAC statement for allowing
+## the "View" (aka read only acccess) role to 
+## all dashboard objects
+resource "observe_rbac_statement" "minimal_reader_permissions" {
+  subject { group = observe_rbac_group.minimal_reader.oid }
+  object { 
+    type = "dashboard"
+  }
+  role = "Viewer"
+}
+
+
+## let's add a single user to that group
+## by looking up the user by their email
+data "observe_user" "example" {
+  email = "kyle.champlin+creditlimittest@observeinc.com"
+}
+
+
+## take the user and group we looked up
+## and then add that user 
+resource "observe_rbac_group_member" "add_user_to_minimal_reader" {
+  group = observe_rbac_group.minimal_reader.oid
+  description = "Add user to minimal reader group"
+  member {
+    user = data.observe_user.example.oid
+  }
+}
